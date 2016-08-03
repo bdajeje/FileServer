@@ -1,0 +1,151 @@
+<h1><span class="fa fa-upload"></span>Upload</h1>
+
+<p style="text-align: justify;">
+  <u>Remember</u>: This a free and communal website. It's <strong>your job</strong> to upload the best file quality possible. Choose perfect name, cateogry and tags. For videos, if you have the correct english subtitles, please add it too.<br/>For those who unfortunaly don't respect rules, remember your actions are tracked, you may be banned.
+</p>
+
+<p><u>Warning</u>: Pornography is <strong>forbidden</strong>. Anyone not respecting the rule will be banned without exception.</p>
+
+<form method="post" class="content-block full-width" enctype="multipart/form-data">
+  <h2>Select a file</h2>
+  <p><input type="file" name="file" id="file"></p>
+
+  <h2>Select a category</h2>
+  <p>
+    <select id="categories" name="category" required>
+      <option></option>
+      <% categories.forEach(function(category) { %>
+        <option value="<%= category._id %>" data-mime-type="<%= category.mime_type %>"><%= category.name %></option>
+      <% }) %>
+    </select>
+  </p>
+
+  <div id="subtitle" style="display:none;">
+    <h2>Add english subtitles <small>[optional but greatly encouraged]</small></h2>
+    <p style="color:red;">TODO: NOT WORKING YET</p>
+    <p><input type="file" name="subtitles" accept="text/plain"></p>
+  </div>
+
+  <h2>Name your file</h2>
+  <p><input type="text" name="name" id="file-name" required></p>
+
+  <h2>Add tags for easier search</h2>
+  <p><input type="text" id="tag"></p>
+  <div id="tags"></div>
+
+  <div class="buttons-wrapper">
+    <input type="button" id="upload-btn" value="Upload" style="margin-bottom: 20px;">
+  </div>
+</form>
+
+<div id="progress-layout" class="progress-layout" style="display:none;">
+  <h1>Upload progress</h1>
+  <div class="progress-bar">
+    <div class="progression"></div>
+    <span class="progress-text"></span>
+  </div>
+
+  <div class="finish" style="display:none;">
+    <p>Upload successful!</p>
+    <input type="button" value="close">
+  </div>
+
+  <div class="error" style="display:none;">
+    <p>Error</p>
+    <p class="content"></p>
+  </div>
+</div>
+
+<% include partials/error.ejs %>
+
+<script>
+  $(document).ready(function() {
+    var $file_name = $('#file-name');
+    var $tags      = $('#tags');
+    var $tag       = $("#tag");
+
+    var addTag = function(name) {
+      $tags.append('<span class="tag">\
+        <span class="fa fa-close" title="remove"></span>\
+        '+ name +'\
+      </span>');
+    }
+
+    $tag.autocomplete({
+      source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
+      select: function(event, ui) {
+        addTag(ui.item.label || ui.item.value);
+        $tag.val('');
+        return false;
+      }
+    });
+
+    // Select movies category displays subtitle
+    $subtitle   = $('#subtitle');
+    $categories = $('#categories');
+    $categories.change(function() {
+      var $option = $(this).find(":selected");
+      if($option.text() === 'movies') { console.log($option.attr('data-mime-type'));
+        $('#file').attr('accept', $option.attr('data-mime-type'));
+        $subtitle.slideDown();
+      }
+      else
+        $subtitle.slideUp();
+    });
+
+    // Handle form upload
+    var $progress_layout = $('#progress-layout');
+    var $progress_text   = $progress_layout.find('.progress-text');
+    var $progress_bar    = $progress_layout.find('.progression');
+    var $progress_finish = $progress_layout.find('.finish');
+
+    $progress_finish.find('input[type=button]').click(function() {
+      $progress_layout.fadeOut('fast');
+    });
+
+    $('#upload-btn').click(function() {
+      var file = document.getElementById('file').files[0];
+      if(!file)
+        return displayError('Select a file before uploading - noob!');
+      else if(!$categories.val() || $categories.val().length === 0)
+        return displayError('Select a category before uploading - noob!');
+      else if(!$file_name.val() || $file_name.val().length === 0)
+        return displayError('Name your file before uploading - noob!');
+
+      $progress_layout.fadeIn('fast');
+
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', $file_name.val());
+      formData.append('category', $categories.val());
+      var xhr = new XMLHttpRequest();
+
+      xhr.open('post', '<%= routes.upload.route %>', true);
+
+      xhr.upload.onprogress = function(e) {
+        if(e.lengthComputable) {
+          var percentage = (e.loaded / e.total) * 100;
+          $progress_bar.css('width', percentage + '%');
+          $progress_text.text(percentage + '%');
+        }
+      };
+
+      xhr.onerror = function(e) {
+        console.error(e);
+        $progress_layout.find('.error .content').text(e.toString());
+        $progress_layout.find('.error').fadeIn('fast');
+        document.getElementById('file').value = null;
+      };
+
+      xhr.onload = function() {
+        $progress_finish.fadeIn('fast');
+        document.getElementById('file').value = null;
+        $file_name.val('');
+        $categories.val('');
+        $tags.children().remove();
+      };
+
+      xhr.send(formData);
+    });
+  });
+</script>

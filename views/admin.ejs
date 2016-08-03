@@ -1,0 +1,79 @@
+<h1>Admin</h1>
+
+<div class="content-block">
+  <h2>Pending requests</h2>
+  <% if(users.empty()) { %>
+    <p>No pending requests.</p>
+  <% } else { %>
+    <table>
+      <tr>
+        <th>Who</th>
+        <th>When</th>
+        <th>Actions</th>
+      </tr>
+      <% users.forEach(function(pending_user) { %>
+        <tr>
+          <td><%= pending_user.pseudo %></td>
+          <td><%= renderDate(pending_user.createdOn) %></td>
+          <td>
+            <a href="<%= routing.generate(routes.admin.pending_request.accept, {id: pending_user._id}) %>" style="color: blue">Accept</a>
+            |
+            <a href="<%= routing.generate(routes.admin.pending_request.refuse, {id: pending_user._id}) %>" style="color: red">Refuse</a>
+          </td>
+        </tr>
+      <% }) %>
+    </table>
+  <% } %>
+</div>
+
+<div class="content-block">
+  <h2>Last 10 downloads</h2>
+  <table>
+    <tr>
+      <th>Downloader</th>
+      <th>What</th>
+      <th>When</th>
+    </tr>
+    <% last_downloads.forEach(function(last_download) { %>
+      <tr>
+        <td><%= last_download.user.pseudo %></td>
+        <td><a href="<%= routing.generate(routes.downloadable.view, {id: last_download.download._id}) %>"><%= last_download.download.name %></a></td>
+        <td><%= renderDate(last_download.downloaded_on) %></td>
+      </tr>
+    <% }) %>
+  </table>
+</div>
+
+<div class="content-block">
+  <h2>Last 10 uploads</h2>
+  <table>
+    <tr>
+      <th>Uploader</th>
+      <th>What</th>
+      <th>When</th>
+    </tr>
+    <% last_uploads.forEach(function(last_upload) { %>
+      <tr>
+        <td><%= last_upload.uploader.pseudo %></td>
+        <td><a href="<%= routing.generate(routes.downloadable.view, {id: last_upload._id}) %>"><%= last_upload.name %></a></td>
+        <td><%= renderDate(last_upload.uploaded_on) %></td>
+      </tr>
+    <% }) %>
+  </table>
+</div>
+
+<div class="content-block">
+  <h2>Users</h2>
+  <ul>
+    <% active_users.forEach(function(active_user) { %>
+      <li><%= active_user.pseudo %> - <%= renderDate(active_user.lastConnectedOn) %></li>
+    <% }) %>
+  </ul>
+</div>
+
+<form class="content-block" method="post" action="<%= routes.admin.create_news.route %>">
+  <h2>Create news</h2>
+  <textarea name="text"></textarea>
+  <br/>
+  <input type="submit" value="Post news">
+</form>

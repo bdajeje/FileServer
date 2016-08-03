@@ -1,0 +1,36 @@
+<h1><span class="fa fa-dashboard"></span>Dashboard</h1>
+
+<div class="content-block">
+  <h2>Note</h2>
+  <p>
+    Welcome to this cultural free hub. From here you can freely upload and download any kind of files.<br/>
+    This web site is <strong>strickly</strong> private and works thanks to its community.<br/>
+    Thus, any kind of fraud or bad behavior is forbidden and will lead to banishment of your account.<br/>
+    Moveover download is limited to prevent people from abusing. You can freely download one item of any type per day.<br/><br/>
+    If you ever need more, ask to the administrator, he may (or not) grant you a temporary access to more downloads.<br/><br/>
+    Thank you, and don't forget, this works thanks to you and for you!
+  </p>
+</div>
+
+<div class="content-block">
+  <h2>News</h2>
+  <% all_news.forEach(function(news) { %>
+    <p>
+      <%- news.text.replace(/\r\n/g, '<br/>') %>
+      <span class="date">The <%= renderDate(news.date) %></span>
+    </p>
+  <% }) %>
+</div>
+
+<div class="content-block">
+  <h2>Your download history</h2>
+  <% if(history.empty()) { %>
+    <p>You haven't downloaded anything yet. Give it a try! <a href="<%= routes.browse.route %>">You can browse the database here</a>.</p>
+  <% } else { %>
+    <ul style="list-style:none;">
+      <% history.forEach(function(download_history) { %>
+        <li><%= download_history.download.name %> <small>(<%= renderDate(download_history.downloaded_on) %>)</small></li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>

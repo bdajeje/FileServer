@@ -1,0 +1,18 @@
+<div id="error-dialog" title="Noob error" style="display:none;">
+  <p id="error-text"></p>
+</div>
+
+<script>
+  function displayError(text) {
+    $('#error-text').text(text);
+
+    $("#error-dialog").dialog({
+      modal: true,
+      closeOnEscape: false,
+      resizable: false,
+      buttons: {
+        'Sorry I noobed': function() { $(this).dialog("close"); }
+      }
+    });
+  }
+</script>

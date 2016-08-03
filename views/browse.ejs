@@ -1,0 +1,165 @@
+<% if(!user.isAllowedToDownloadMore()) { %>
+  <p class="error"><span class="fa fa-warning"></span>You can't download anymore today. Please come back tomorrow.</p>
+<% } %>
+
+<h1><span class="fa fa-folder-open"></span>Browse</h1>
+
+<form method="get" id="search-form" class="content-block">
+  Filter your browsing results:
+  <p>
+    <input type="text" name="tags" placeholder="Tags" id="tag">
+    <input type="text" name="search" placeholder="Search" id="search" value="<%= search %>">
+    <select name="category" id="categories">
+      <option>Choose</option>
+      <% categories.forEach(function(category) { %>
+        <option value="<%= category.name %>" <%= category.name === selected_category ? 'selected="selected"' : '' %>><%= category.name.capitalize() %></option>
+      <% }) %>
+    </select>
+    <input type="button" value="Search" id="search-btn">
+  </p>
+
+  <div id="tags"></div>
+</form>
+
+<div class="content-block">
+<% var hasResults = false;
+  categories.forEach(function(category) { %>
+  <% if(!downloads_by_category[category._id].empty()) { %>
+    <% hasResults = true; %>
+    <h2><span class="fa fa-<%= category.logo %>"></span><%= category.name.capitalize() %></h2>
+      <% downloads_by_category[category._id].forEach(function(download, index) { %>
+        <div class="<%= category.name %>-card">
+          <a href="<%= routing.generate(routes.downloadable.download, {id: download._id}) %>" class="fa fa-download download"></a>
+          <% if(category.name === 'photos') { %>
+            <img src="/data/photos/<%= download._id %>" class="zoomable" data-name="<%= download.name %>" id="zoomable-<%= index %>">
+          <% } %>
+        </div>
+      <% }) %>
+  <% } %>
+<% }) %>
+
+<% if(!hasResults) { %>
+  <p>Add criteria to your search then press SEARCH to get results.</p>
+<% } %>
+</div>
+
+<% include partials/error.ejs %>
+
+<div id="zoomable-dialog" class="zoomable-dialog" style="display:none;">
+  <div class="btn previous" title="Previous"><!-- <div class="relative"><span class="fa fa-arrow-left"></span></div> --></div>
+  <div class="content"></div>
+  <div class="btn next" title="Next"><!-- <div class="relative"><span class="fa fa-arrow-right"></span></div> --></div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    var $tags = $('#tags');
+    var $tag  = $('#tag');
+
+    var addTag = function(name) {
+      $tags.append('<span class="tag">\
+        <span class="fa fa-close" title="remove"></span>\
+        '+ name +'\
+      </span>');
+    }
+
+    $tag.autocomplete({
+      source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
+      select: function(event, ui) {
+        addTag(ui.item.label || ui.item.value);
+        $tag.val('');
+        return false;
+      }
+    });
+
+    $('.tag .fa-close').click(function() {
+      $(this).parent().remove();
+    });
+
+    <% user_tags.forEach(function(user_tag) { %>
+      addTag('<%= user_tag.name %>');
+    <% }) %>
+
+    $('#search-btn').click(function() {
+      var tags     = $tags.children('.tag').each(function() { return $(this).text(); })
+      var search   = $('#search').val();
+      var category = $('#categories').val();
+
+      if(tags.length === 0 && search.length === 0 && category === 'Choose') {
+        displayError('Type or select something to search before submitting - noob!');
+        return;
+      }
+
+      $('#search-form').submit();
+    });
+
+    var getZoomableIntID = function($zoomable) {
+      return parseInt($zoomable.attr('id').replace('zoomable-', ''));
+    }
+
+    var $zoomable_dialog   = $(".zoomable-dialog");
+    var $zoomable_content  = $zoomable_dialog.find('.content');
+    var $zoomable_title    = $zoomable_dialog.find('.ui-dialog-title');
+    var current_zoomable   = null;
+    var last_zoommable_id  = getZoomableIntID($('.zoomable').last());
+    var dialog_initialized = false;
+
+    var updateZoomableContent = function($zoomable) {
+      $zoomable_content.children().remove();
+      $zoomable_content.append('<img src="'+ $zoomable.attr('src') +'">');
+      current_zoomable = parseInt($zoomable.attr('id').replace('zoomable-', ''));
+      $zoomable_dialog.dialog('option', 'title', $zoomable.data('name'));
+    }
+
+    var showPreviousZoomable = function() {
+      current_zoomable--;
+      if(current_zoomable < 0)
+        current_zoomable = last_zoommable_id;
+
+      var $zoomable_to_show = $('#zoomable-' + current_zoomable);
+      updateZoomableContent( $zoomable_to_show );
+    }
+
+    var showNextZoomable = function() {
+      current_zoomable++;
+      if(current_zoomable > last_zoommable_id)
+        current_zoomable = 0;
+
+      var $zoomable_to_show = $('#zoomable-' + current_zoomable);
+      updateZoomableContent( $zoomable_to_show );
+    }
+
+    // Click on a zoomable displays it in a dialog
+    $('.zoomable').click(function() {
+      dialog_initialized = true;
+      $zoomable_dialog.dialog({
+        modal: true,
+        closeOnEscape: true,
+        resizable: true,
+        width: 'auto'
+      });
+
+      updateZoomableContent($(this));
+    });
+
+    // Click on zoomable previous/ext buttons shows new zoomable item
+    $zoomable_dialog.find('.btn.previous').click(function() { showPreviousZoomable(); });
+    $zoomable_dialog.find('.btn.next').click(function() { showNextZoomable(); });
+
+    // On left/right arrow update zoomable content
+    $('body').keydown(function(event) {
+      if(!dialog_initialized || !$zoomable_dialog.dialog('isOpen'))
+        return;
+
+      if(event.keyCode == 37) {
+        showPreviousZoomable();
+        event.preventDefault();
+      }
+      else if(event.keyCode == 39) {
+        showPreviousZoomable();
+        event.preventDefault();
+      }
+    });
+  });
+</script>
+

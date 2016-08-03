@@ -1,0 +1,61 @@
+<h1><span class="fa fa-file"></span><%= downloadable.name %></h1>
+
+<div class="content-block">
+  <p>
+    <a href="<%= routing.generate(routes.downloadable.download, {id: downloadable._id}) %>">DOWNLOAD</a>
+    <% if(downloadable.hasExtra('subtitle')) { %>
+      <a href="<%= routing.generate(routes.downloadable.download_extra, {id: downloadable._id, extra: 'subtitle'}) %>">English Subtitles</a>
+    <% } %>
+  </p>
+  <p>Uploaded by <strong><%= downloadable.uploader.pseudo %></strong> the <%= renderDate(downloadable.uploaded_on) %></p>
+</div>
+
+<div class="content-block">
+  <h2>Tags</h2>
+  <% if(downloadable.tags.empty()) { %>
+    <p>No tag yet. Please add a tag to help the community!</p>
+  <% } else { %>
+    <p>
+      <% downloadable.tags.forEach(function(tag) { %>
+        <span class="tag"><%= tag.name %></span>
+      <% }) %>
+    </p>
+  <% } %>
+</div>
+
+<div class="content-block">
+  <h2>Ratings</h2>
+  <% if(downloadable.ratings.empty()) { %>
+    <p>No ratings yet. Be the first one to rate it!</p>
+  <% } else { %>
+    <ul class="ratings">
+      <% downloadable.ratings.forEach(function(user_rating) { %>
+        <li>
+          <% var rate = Math.floor(user_rating.rate / 2); %> %>
+          <% for(var i = 0; i < rate; ++i) { %>
+            <span class="fa fa-star"></span>
+          <% } %>
+          <% if(user_rating.rate % 2 !== 0) { %>
+            <span class="fa fa-star-half-full"></span>
+          <% } %>
+          by <%= user_rating.user.pseudo %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
+
+<div class="content-block">
+  <h2>Comments</h2>
+  <% if(downloadable.comments.empty()) { %>
+    <p>No comments yet.</p>
+  <% } else { %>
+    <% downloadable.comments.forEach(function(comment) { %>
+      <fieldset class="comment">
+        <legend><%= comment.user.pseudo %></legend>
+        <p class="text"><%= comment.text %></p>
+        <p class="date">The <%= renderDate(comment.commented_on) %></p>
+      </fieldset>
+    <% }) %>
+  <% } %>
+</div>
