@@ -20,16 +20,9 @@ module.exports = function(app) {
   })
 
   app.get(Routes.admin.home.route, Connect.ensureLoggedIn(), function(req, res, next) {
-    let users, last_downloads, active_users, last_uploads;
+    let last_downloads, users, last_uploads;
 
     Async.parallel([
-      function(done) {
-        User.findPending()
-        .exec(function(error, found_users) {
-          users = found_users;
-          done(error);
-        })
-      },
       function(done) {
         DownloadHistory.findLast(10)
         .populate('user', 'pseudo')
@@ -40,9 +33,9 @@ module.exports = function(app) {
         })
       },
       function(done) {
-        User.findActives()
-        .exec(function(error, found_active_users) {
-          active_users = found_active_users;
+        User.all()
+        .exec(function(error, found_users) {
+          users = found_users;
           done(error);
         })
       },
@@ -59,29 +52,28 @@ module.exports = function(app) {
         return next(error);
 
       return res.render('admin.ejs', {
-        users: users,
         last_downloads: last_downloads,
-        active_users: active_users,
+        users: users,
         last_uploads: last_uploads
       });
     });
   });
 
-  app.get(Routes.admin.pending_request.accept.route, Connect.ensureLoggedIn(), function(req, res, next) {
+  app.get(Routes.admin.pending_request.accept.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
     User.accept(req.params.id, function() {
       req.flash('info', 'User accepted');
       return res.redirect(req.previous_url);
     });
   });
 
-  app.get(Routes.admin.pending_request.refuse.route, Connect.ensureLoggedIn(), function(req, res, next) {
+  app.get(Routes.admin.pending_request.refuse.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
     User.refuse(req.params.id, function() {
       req.flash('info', 'User refused');
       return res.redirect(req.previous_url);
     });
   })
 
-  app.post(Routes.admin.create_news.route, Connect.ensureLoggedIn(), function(req, res, next) {
+  app.post(Routes.admin.create_news.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
     let news = new News({text: req.body.text});
     news.save(function(error) {
       if(error)
@@ -89,6 +81,50 @@ module.exports = function(app) {
 
       req.flash('info', 'News posted');
       return res.redirect(req.previous_url);
+    });
+  })
+
+  app.post(Routes.admin.ban_user.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    User.findByID(req.body.id)
+    .exec(function(error, user) {
+      if(error)
+        return next(error);
+
+      if(!user) {
+        req.flash('error', 'Can\'t find user');
+        return res.redirect(req.previous_url);
+      }
+
+      user.status = User.Status.Refused;
+      user.save(function(error) {
+        if(error)
+          return next(error);
+
+        req.flash('info', `User ${user.pseudo} banned`);
+        return res.redirect(req.previous_url);
+      });
+    });
+  })
+
+  app.post(Routes.admin.unban_user.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    User.findByID(req.body.id)
+    .exec(function(error, user) {
+      if(error)
+        return next(error);
+
+      if(!user) {
+        req.flash('error', 'Can\'t find user');
+        return res.redirect(req.previous_url);
+      }
+
+      user.status = User.Status.Validated;
+      user.save(function(error) {
+        if(error)
+          return next(error);
+
+        req.flash('info', `User ${user.pseudo} unbanned`);
+        return res.redirect(req.previous_url);
+      });
     });
   })
 

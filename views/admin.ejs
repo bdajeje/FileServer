@@ -1,8 +1,22 @@
+<%
+  var pending_users = [];
+  var active_users  = [];
+  var banned_users  = [];
+  users.forEach(function(user) {
+    if(user.isValidated())
+      active_users.push(user);
+    else if(user.isPending())
+      pending_users.push(user);
+    else
+      banned_users.push(user);
+  })
+%>
+
 <h1>Admin</h1>
 
 <div class="content-block">
   <h2>Pending requests</h2>
-  <% if(users.empty()) { %>
+  <% if(pending_users.empty()) { %>
     <p>No pending requests.</p>
   <% } else { %>
     <table>
@@ -11,7 +25,7 @@
         <th>When</th>
         <th>Actions</th>
       </tr>
-      <% users.forEach(function(pending_user) { %>
+      <% pending_users.forEach(function(pending_user) { %>
         <tr>
           <td><%= pending_user.pseudo %></td>
           <td><%= renderDate(pending_user.createdOn) %></td>
@@ -65,8 +79,25 @@
 <div class="content-block">
   <h2>Users</h2>
   <ul>
+    <h3>Active users</h3>
     <% active_users.forEach(function(active_user) { %>
-      <li><%= active_user.pseudo %> - <%= renderDate(active_user.lastConnectedOn) %></li>
+      <li>
+        <%= active_user.pseudo %> - <%= renderDate(active_user.lastConnectedOn) %> -
+        <form method="post" action="<%= routes.admin.ban_user.route %>" style="display: inline-block;">
+          <input type="hidden" name="id" value="<%= active_user._id %>">
+          <input type="button" class="ban-form-submit" value="Ban" style="color: red;">
+        </form>
+      </li>
+    <% }) %>
+    <h3>Banned users</h3>
+    <% banned_users.forEach(function(banned_user) { %>
+      <li>
+        <%= banned_user.pseudo %> - <%= renderDate(banned_user.lastConnectedOn) %> -
+        <form method="post" action="<%= routes.admin.unban_user.route %>" style="display: inline-block;">
+          <input type="hidden" name="id" value="<%= banned_user._id %>">
+          <input type="button" class="ban-form-submit" value="Unban" style="color: green;">
+        </form>
+        </li>
     <% }) %>
   </ul>
 </div>
@@ -77,3 +108,12 @@
   <br/>
   <input type="submit" value="Post news">
 </form>
+
+<script>
+$(document).ready(function() {
+  $('.ban-form-submit').click(function() {
+    if(confirm('Are you sure?'))
+      $(this).parents('form').submit();
+  });
+});
+</script>

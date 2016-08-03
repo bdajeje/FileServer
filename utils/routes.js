@@ -90,6 +90,18 @@ let Routes = {
     },
     create_news: {
       route: '/admin/news/create'
+    },
+    ban_user: {
+      route: '/admin/user/ban',
+      post: {
+        id: {type: SecurityTypes.String}
+      }
+    },
+    unban_user: {
+      route: '/admin/user/unban',
+      post: {
+        id: {type: SecurityTypes.String}
+      }
     }
   }
 

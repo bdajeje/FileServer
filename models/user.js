@@ -41,6 +41,10 @@ schema.methods.isValidated = function() {
   return this.status === Status.Validated;
 }
 
+schema.methods.isPending = function() {
+  return this.status === Status.WaitingValidation;
+}
+
 schema.statics.accept = function(id, callback) {
   this.update({_id: id}, {$set: {status: Status.Validated}}, function(error) {
     if(error)
@@ -63,6 +67,10 @@ schema.statics.findByPseudo = function(pseudo) {
   return this.findOne({pseudo: pseudo});
 }
 
+schema.statics.findByID = function(id) {
+  return this.findOne({_id: id});
+}
+
 schema.statics.isAvailablePseudo = function(input, callback) {
   this.findOne({pseudo: input}, function(error, user) {
     if(error)
@@ -80,5 +88,12 @@ schema.statics.findActives = function() {
   return this.find({status: Status.Validated});
 }
 
-module.exports = mongoose.model('User', schema);
+schema.statics.all = function() {
+  return this.find({});
+}
+
+let User = mongoose.model('User', schema);
+User.Status = Status;
+
+module.exports = User;
 
