@@ -15,7 +15,7 @@
     <select id="categories" name="category" required>
       <option></option>
       <% categories.forEach(function(category) { %>
-        <option value="<%= category._id %>" data-mime-type="<%= category.mime_type %>"><%= category.name %></option>
+        <option value="<%= category._id %>" data-mime-type="<%= category.mime_type %>"><%= category.name.capitalize() %></option>
       <% }) %>
     </select>
   </p>
@@ -45,47 +45,33 @@
     <span class="progress-text"></span>
   </div>
 
-  <div class="finish" style="display:none;">
+  <div class="sub-block finish" style="display:none;">
     <p>Upload successful!</p>
-    <input type="button" value="close">
   </div>
 
-  <div class="error" style="display:none;">
+  <div class="sub-block error" style="display:none;">
     <p>Error</p>
     <p class="content"></p>
+  </div>
+
+  <div class="sub-block btn-layout" style="display:none;">
+    <input type="button" value="close">
   </div>
 </div>
 
 <% include partials/error.ejs %>
+<% include partials/tags.ejs %>
 
 <script>
   $(document).ready(function() {
     var $file_name = $('#file-name');
-    var $tags      = $('#tags');
-    var $tag       = $("#tag");
-
-    var addTag = function(name) {
-      $tags.append('<span class="tag">\
-        <span class="fa fa-close" title="remove"></span>\
-        '+ name +'\
-      </span>');
-    }
-
-    $tag.autocomplete({
-      source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
-      select: function(event, ui) {
-        addTag(ui.item.label || ui.item.value);
-        $tag.val('');
-        return false;
-      }
-    });
 
     // Select movies category displays subtitle
     $subtitle   = $('#subtitle');
     $categories = $('#categories');
     $categories.change(function() {
       var $option = $(this).find(":selected");
-      if($option.text() === 'movies') { console.log($option.attr('data-mime-type'));
+      if($option.text() === 'movies') {
         $('#file').attr('accept', $option.attr('data-mime-type'));
         $subtitle.slideDown();
       }
@@ -99,8 +85,8 @@
     var $progress_bar    = $progress_layout.find('.progression');
     var $progress_finish = $progress_layout.find('.finish');
 
-    $progress_finish.find('input[type=button]').click(function() {
-      $progress_layout.fadeOut('fast');
+    $progress_layout.find('.btn-layout input[type=button]').click(function() {
+      location.reload();
     });
 
     $('#upload-btn').click(function() {
@@ -111,13 +97,21 @@
         return displayError('Select a category before uploading - noob!');
       else if(!$file_name.val() || $file_name.val().length === 0)
         return displayError('Name your file before uploading - noob!');
+      else if($('#tags .tag').length === 0)
+        return displayError('Add at least one tag - noob!');
 
       $progress_layout.fadeIn('fast');
+
+      var tags_result = '';
+      $('#tags .tag .content').each(function() {
+        tags_result += $(this).text().replace(',', '') + ',';
+      });
 
       var formData = new FormData();
       formData.append('file', file);
       formData.append('name', $file_name.val());
       formData.append('category', $categories.val());
+      formData.append('tags', tags_result.toString());
       var xhr = new XMLHttpRequest();
 
       xhr.open('post', '<%= routes.upload.route %>', true);
@@ -130,19 +124,22 @@
         }
       };
 
-      xhr.onerror = function(e) {
-        console.error(e);
-        $progress_layout.find('.error .content').text(e.toString());
+      var showError = function(message) {
+        $progress_layout.find('.error .content').text(message);
         $progress_layout.find('.error').fadeIn('fast');
-        document.getElementById('file').value = null;
+        $progress_layout.find('.btn-layout').fadeIn('fast');
+      }
+
+      xhr.onerror = function(e) {
+        showError(this.responseText)
       };
 
       xhr.onload = function() {
+        if(this.responseText !== 'OK')
+          return showError(this.responseText);
+
         $progress_finish.fadeIn('fast');
-        document.getElementById('file').value = null;
-        $file_name.val('');
-        $categories.val('');
-        $tags.children().remove();
+        $progress_layout.find('.btn-layout').fadeIn('fast');
       };
 
       xhr.send(formData);

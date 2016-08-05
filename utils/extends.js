@@ -58,3 +58,19 @@ Array.prototype.remove = function(element) {
 
   return index;
 }
+
+/*! Check all elements in array, remove them if not respecting given condition
+ *  \param condition - function getting one parameter, an element from the array.
+ *                     if the conditition returns false the element is removed, otherwise kept.
+ *  \returns a new array without the removed elements
+ */
+Array.prototype.removeIf = function(conditition) {
+  let results = [];
+
+  this.forEach(function(element) {
+    if(conditition(element))
+      results.push(element);
+  });
+
+  return results;
+}

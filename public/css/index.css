@@ -320,8 +320,7 @@ form.full-width select {
       z-index: 200;
       position: absolute;
       font-weight: bold; }
-  .progress-layout .finish,
-  .progress-layout .error {
+  .progress-layout .sub-block {
     width: 50%;
     margin: auto;
     text-align: center;

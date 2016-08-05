@@ -44,6 +44,7 @@
 </div>
 
 <% include partials/error.ejs %>
+<% include partials/tags.ejs %>
 
 <div id="zoomable-dialog" class="zoomable-dialog" style="display:none;">
   <div class="btn previous" title="Previous"><!-- <div class="relative"><span class="fa fa-arrow-left"></span></div> --></div>
@@ -53,35 +54,8 @@
 
 <script>
   $(document).ready(function() {
-    var $tags = $('#tags');
-    var $tag  = $('#tag');
-
-    var addTag = function(name) {
-      $tags.append('<span class="tag">\
-        <span class="fa fa-close" title="remove"></span>\
-        '+ name +'\
-      </span>');
-    }
-
-    $tag.autocomplete({
-      source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
-      select: function(event, ui) {
-        addTag(ui.item.label || ui.item.value);
-        $tag.val('');
-        return false;
-      }
-    });
-
-    $('.tag .fa-close').click(function() {
-      $(this).parent().remove();
-    });
-
-    <% user_tags.forEach(function(user_tag) { %>
-      addTag('<%= user_tag.name %>');
-    <% }) %>
-
     $('#search-btn').click(function() {
-      var tags     = $tags.children('.tag').each(function() { return $(this).text(); })
+      var tags     = $('#tags').children('.tag').each(function() { return $(this).text(); })
       var search   = $('#search').val();
       var category = $('#categories').val();
 
@@ -94,6 +68,9 @@
     });
 
     var getZoomableIntID = function($zoomable) {
+      if($zoomable.length === 0)
+        return null;
+
       return parseInt($zoomable.attr('id').replace('zoomable-', ''));
     }
 

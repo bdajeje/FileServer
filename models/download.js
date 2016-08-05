@@ -59,6 +59,13 @@ schema.statics.search = function(search, tags, category, callback) {
   });
 }
 
+schema.statics.findByNameInCategory = function(name, category_id) {
+  return this.findOne({
+    name: new RegExp('/^' + name + '$/i'),
+    category: category_id
+  });
+}
+
 schema.statics.lastUploads = function(how_many) {
   return this.find({}).sort({uploaded_on: -1}).limit(how_many);
 }

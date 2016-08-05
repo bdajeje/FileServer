@@ -1,0 +1,62 @@
+<script>
+  $(document).ready(function() {
+    var $tags = $('#tags');
+    var $tag  = $("#tag");
+
+    var addTag = function(name) {
+      if(!name || name.length === 0)
+        return;
+
+      // Check tag isn't already added
+      var found = false;
+      $tags.find('.tag .content').each(function() {
+        if($(this).text() === name) {
+          found = true;
+          return false;
+        }
+      });
+
+      if(found)
+        return;
+
+      $tags.append('<span class="tag">\
+        <span class="fa fa-close" title="remove"></span>\
+        <span class="content">'+ name +'</span>\
+      </span>');
+
+      $tag.val('');
+    }
+
+    $('.tag .fa-close').click(function() {
+      $(this).parent().remove();
+    });
+
+    <% if(typeof user_tags !== 'undefined') {
+      user_tags.forEach(function(user_tag) { %>
+      addTag('<%= user_tag.name %>');
+    <% })} %>
+
+    $tag.autocomplete({
+      source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
+      select: function(event, ui) {
+        addTag(ui.item.label || ui.item.value);
+        $tag.val('');
+        return false;
+      }
+    });
+
+    <% if(typeof allowNewTags !== 'undefined' && allowNewTags) { %>
+      $('body').keydown(function(event) {
+        if(!$tag.is(":focus") || event.keyCode !== 13)
+          return;
+
+        var value = $tag.val();
+        if(value.length === 0)
+          return false;
+
+        addTag(value);
+        event.preventDefault();
+      });
+    <% } %>
+  });
+</script>
