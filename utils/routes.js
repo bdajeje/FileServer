@@ -70,6 +70,12 @@ let Routes = {
     }
   },
 
+  users: {
+    all: {route: '/users/all'},
+    best_rators: {route: '/users/best-rators'},
+    best_uploaders: {route: '/users/best-uploaders'}
+  },
+
   admin: {
     home: {
       route: '/admin'

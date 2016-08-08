@@ -78,6 +78,7 @@ require('./routes/browse.js')(app);
 require('./routes/download.js')(app);
 require('./routes/upload.js')(app);
 require('./routes/view_data.js')(app);
+require('./routes/users.js')(app);
 require('./routes/admin.js')(app);
 
 // Catch 404 and forwarding to error handler

@@ -22,6 +22,7 @@
         <a href="<%= routing.generate(routes.dashboard) %>" class="btn">Dashboard</a>
         <a href="<%= routing.generate(routes.browse) %>"    class="btn">Browse</a>
         <a href="<%= routing.generate(routes.upload) %>"    class="btn">Upload</a>
+        <a href="<%= routing.generate(routes.users.all) %>" class="btn">Users</a>
         <% if(user.isAdmin()) { %>
           <a href="<%= routing.generate(routes.admin.home) %>"   class="btn">Admin</a>
         <% } %>

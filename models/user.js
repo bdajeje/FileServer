@@ -71,6 +71,10 @@ schema.statics.findByID = function(id) {
   return this.findOne({_id: id});
 }
 
+schema.statics.findByIDs = function(ids) {
+  return this.find({_id: {$in: ids}});
+}
+
 schema.statics.isAvailablePseudo = function(input, callback) {
   this.findOne({pseudo: input}, function(error, user) {
     if(error)

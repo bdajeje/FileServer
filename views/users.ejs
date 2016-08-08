@@ -1,0 +1,27 @@
+<h1><span class="fa fa-users"></span>Users</h1>
+
+<div style="margin-bottom: 20px">
+<% var links = [
+    {route: routes.users.all.route, type: 'all', text: 'All'},
+    {route: routes.users.best_rators.route, type: 'rators', text: 'Best ' + nbr_top_rators + ' rators'},
+    {route: routes.users.best_uploaders.route, type: 'uploaders', text: 'Best ' + nbr_top_uploaders + ' uploaders'}
+  ].forEach(function(link) { %>
+    <a href="<%= link.route %>" class="<%= (link.type === type) ? 'selected' : '' %>" style="margin-right: 10px;">
+      <%= link.text %>
+    </a>
+<% }); %>
+</div>
+
+<div class="content-block">
+  <% users.forEach(function(user, index) { %>
+    <div class="user-tag">
+      <span class="position"><%= index + 1 %></span>
+      <span class="pseudo"><%= user.pseudo %></span>
+      <% if(type === 'rators') { %>
+        <span class="result"><strong><%= nbr_ratings_per_user[user._id] %></strong> rate<%= nbr_ratings_per_user[user._id] > 1 ? 's' : '' %></span>
+      <% } else if(type === 'uploaders') { %>
+        <span class="result"><strong><%= nbr_uploads_per_user[user._id] %></strong> uploads</span>
+      <% } %>
+    </div>
+  <% }) %>
+</div>

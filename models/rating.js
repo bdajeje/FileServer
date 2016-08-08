@@ -8,4 +8,8 @@ let schema = new Schema({
   rate: {type: Number, required: true}
 });
 
+schema.statics.all = function() {
+  return this.find({});
+}
+
 module.exports = mongoose.model('Rating', schema);
