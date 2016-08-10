@@ -29,7 +29,8 @@
     <h2><span class="fa fa-<%= category.logo %>"></span><%= category.name.capitalize() %></h2>
       <% downloads_by_category[category._id].forEach(function(download, index) { %>
         <div class="<%= category.name %>-card">
-          <a href="<%= routing.generate(routes.downloadable.download, {id: download._id}) %>" class="fa fa-download download"></a>
+          <a href="<%= routing.generate(routes.downloadable.download, {id: download._id}) %>" class="fa fa-download link"></a>
+          <a href="<%= routing.generate(routes.downloadable.view, {id: download._id}) %>" class="fa fa-info-circle link"></a>
           <% if(category.name === 'photos') { %>
             <img src="/data/photos/<%= download._id %>" class="zoomable" data-name="<%= download.name %>" id="zoomable-<%= index %>">
           <% } %>

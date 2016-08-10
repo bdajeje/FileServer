@@ -216,11 +216,24 @@ table {
   font-size: 0.8em;
   float: right; }
 
-.ratings {
+.ratings ul {
   list-style: none;
-  padding: 0; }
-  .ratings .fa {
-    margin-right: 0px; }
+  padding-left: 0px; }
+.ratings .fa {
+  margin-right: 0px;
+  border-bottom: none !important; }
+.ratings .fa-star {
+  color: #fff; }
+.ratings .fa-star-o {
+  color: #cccaca; }
+.ratings .rating-extra {
+  vertical-align: middle;
+  margin-left: 10px; }
+.ratings .rating {
+  font-size: 1.5em;
+  margin-right: 0; }
+.ratings .user-rating .rating {
+  cursor: pointer; }
 
 h1::after {
   content: " ";
@@ -338,10 +351,11 @@ form.full-width select {
   display: inline-block;
   margin: 10px;
   cursor: pointer; }
-  .photos-card .download {
-    display: block;
-    padding-bottom: 5px; }
-    .photos-card .download:hover {
+  .photos-card .link {
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-right: 5px; }
+    .photos-card .link:hover {
       border: none; }
   .photos-card img {
     max-width: 75px;
@@ -407,5 +421,12 @@ a.selected {
     margin-bottom: 5px; }
   .user-tag .result {
     display: block; }
+
+.report {
+  color: red !important;
+  float: right; }
+  .report .fa-warning {
+    font-size: 1em;
+    vertical-align: top; }
 
 /*# sourceMappingURL=index.css.map */

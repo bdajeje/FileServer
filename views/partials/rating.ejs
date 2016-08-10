@@ -1,0 +1,20 @@
+<%
+  var rate      = rating ? rating.rate : 0;
+  var clickable = typeof id !== 'undefined';
+%>
+
+<% for(var i = 1; i <= 5; ++i) { %>
+  <% var star_class = (i <= rate) ? 'fa-star' : 'fa-star-o' %>
+  <span class="fa <%= star_class %> rating"
+  <% if(clickable) { %>
+    <%- `data-star-offset="${i}"` %>
+    <%- `data-star-original-class="${star_class}"` %>
+    <%- `data-object-id="${id}"` %>
+  <% } %>
+  >
+  </span>
+<% } %>
+
+<% if(!clickable && rating) { %>
+  <span class="rating-extra">by <%= rating.user.pseudo %></span>
+<% } %>

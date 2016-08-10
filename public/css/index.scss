@@ -295,11 +295,38 @@ table {
 }
 
 .ratings {
-  list-style: none;
-  padding: 0;
+  ul {
+    list-style: none;
+    padding-left: 0px;
+  }
 
   .fa {
     margin-right: 0px;
+    border-bottom: none !important;
+  }
+
+  .fa-star {
+    color: $hightlight_color;
+  }
+
+  .fa-star-o {
+    color: $text_color;
+  }
+
+  .rating-extra {
+    vertical-align: middle;
+    margin-left: 10px;
+  }
+
+  .rating {
+    font-size: 1.5em;
+    margin-right: 0;
+  }
+
+  .user-rating {
+    .rating {
+      cursor: pointer;
+    }
   }
 }
 
@@ -452,9 +479,10 @@ form.full-width {
   margin: 10px;
   cursor: pointer;
 
-  .download {
-    display: block;
+  .link {
+    display: inline-block;
     padding-bottom: 5px;
+    margin-right: 5px;
 
     &:hover {
       border: none;
@@ -555,5 +583,15 @@ a.selected {
 
   .result {
     display: block;
+  }
+}
+
+.report {
+  color: $error_color !important;
+  float: right;
+
+  .fa-warning {
+    font-size: 1em;
+    vertical-align: top;
   }
 }

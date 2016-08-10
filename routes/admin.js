@@ -7,7 +7,8 @@ let Connect         = require('connect-ensure-login'),
     User            = require('../models/user'),
     Download        = require('../models/download'),
     DownloadHistory = require('../models/download_history'),
-    News            = require('../models/news');
+    News            = require('../models/news'),
+    Report          = require('../models/report');
 
 module.exports = function(app) {
 
@@ -20,7 +21,7 @@ module.exports = function(app) {
   })
 
   app.get(Routes.admin.home.route, Connect.ensureLoggedIn(), function(req, res, next) {
-    let last_downloads, users, last_uploads;
+    let last_downloads, users, last_uploads, reports;
 
     Async.parallel([
       function(done) {
@@ -46,6 +47,15 @@ module.exports = function(app) {
           last_uploads = found_last_uploads;
           done(error);
         })
+      },
+      function(done) {
+        Report.all()
+        .populate('user', 'pseudo')
+        .populate('download', 'name')
+        .exec(function(error, found_reports) {
+          reports = found_reports;
+          done(error);
+        });
       }
     ], function(error) {
       if(error)
@@ -54,7 +64,8 @@ module.exports = function(app) {
       return res.render('admin.ejs', {
         last_downloads: last_downloads,
         users: users,
-        last_uploads: last_uploads
+        last_uploads: last_uploads,
+        reports: reports
       });
     });
   });

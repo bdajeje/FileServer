@@ -2,6 +2,7 @@
   var pending_users = [];
   var active_users  = [];
   var banned_users  = [];
+
   users.forEach(function(user) {
     if(user.isValidated())
       active_users.push(user);
@@ -9,7 +10,16 @@
       pending_users.push(user);
     else
       banned_users.push(user);
-  })
+  });
+
+  var merged_reports = {};
+  reports.forEach(function(report) {
+    var name = report.download.name;
+    if(!merged_reports[name])
+      merged_reports[name] = { reports: [] }
+
+    merged_reports[name].reports.push(report);
+  });
 %>
 
 <h1>Admin</h1>
@@ -37,6 +47,25 @@
         </tr>
       <% }) %>
     </table>
+  <% } %>
+</div>
+
+<div class="content-block">
+  <h2>Reports</h2>
+  <% if(reports.empty()) { %>
+    <p>No reports.</p>
+  <% } else { %>
+    <% Object.keys(merged_reports).forEach(function(name) { %>
+      <% var merged_report = merged_reports[name]; %>
+      <fieldset>
+        <legend><a href="<%= routing.generate(routes.downloadable.view, {id: merged_report.reports[0].download._id}) %>"><%= name %></a></legend>
+        <ul>
+          <% merged_report.reports.forEach(function(report) { %>
+            <li><%= report.user.pseudo %> the <%= renderDate(report.reported_on) %></li>
+          <% }) %>
+        </ul>
+      </fieldset>
+    <% }) %>
   <% } %>
 </div>
 

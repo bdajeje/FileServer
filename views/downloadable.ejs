@@ -1,12 +1,19 @@
 <h1><span class="fa fa-file"></span><%= downloadable.name %></h1>
 
 <div class="content-block">
-  <p>
-    <a href="<%= routing.generate(routes.downloadable.download, {id: downloadable._id}) %>">DOWNLOAD</a>
+  <div>
+    <a href="<%= routing.generate(routes.downloadable.download, {id: downloadable._id}) %>">
+      <span class="fa fa-download" style="margin-right: 0px;"></span>
+      DOWNLOAD
+    </a>
+    <a href="<%= routing.generate(routes.downloadable.report, {id: downloadable._id}) %>" class="report" title="Click here to report this file. An administrator will review it then may remove it">
+      <span class="fa fa-warning" style="margin-right: 0px;"></span>
+      REPORT
+    </a>
     <% if(downloadable.hasExtra('subtitle')) { %>
       <a href="<%= routing.generate(routes.downloadable.download_extra, {id: downloadable._id, extra: 'subtitle'}) %>">English Subtitles</a>
     <% } %>
-  </p>
+  </div>
   <p>Uploaded by <strong><%= downloadable.uploader.pseudo %></strong> the <%= renderDate(downloadable.uploaded_on) %></p>
 </div>
 
@@ -23,23 +30,25 @@
   <% } %>
 </div>
 
-<div class="content-block">
+<div class="ratings">
   <h2>Ratings</h2>
-  <% if(downloadable.ratings.empty()) { %>
+  <h3>Your rate</h3>
+  <div class="user-rating" style="display:inline-block;">
+    <%- include('./partials/rating', {rating: user_rating, id: downloadable._id}) %>
+    <span style="display:none" class="info">Updated!</span>
+  </div>
+  <h3>Other rates</h3>
+  <%
+  var other_ratings = downloadable.ratings
+                      .removeIf(function(rating) { return rating.user._id.toString() === user._id.toString(); })
+                      .sort(function(a, b) { return a.rate < b.rate; });
+  %>
+  <% if(other_ratings.empty()) { %>
     <p>No ratings yet. Be the first one to rate it!</p>
   <% } else { %>
-    <ul class="ratings">
-      <% downloadable.ratings.forEach(function(user_rating) { %>
-        <li>
-          <% var rate = Math.floor(user_rating.rate / 2); %> %>
-          <% for(var i = 0; i < rate; ++i) { %>
-            <span class="fa fa-star"></span>
-          <% } %>
-          <% if(user_rating.rate % 2 !== 0) { %>
-            <span class="fa fa-star-half-full"></span>
-          <% } %>
-          by <%= user_rating.user.pseudo %>
-        </li>
+    <ul>
+      <% other_ratings.forEach(function(user_rating) { %>
+        <li><%- include('./partials/rating', {rating: user_rating}) %></li>
       <% }) %>
     </ul>
   <% } %>
@@ -59,3 +68,51 @@
     <% }) %>
   <% } %>
 </div>
+
+<script>
+$(document).ready(function() {
+  $('.user-rating .rating').mouseover(function() {
+    var $self = $(this);
+    var found = false;
+    $(this).parent().children('.rating').each(function() {
+      if(found)
+        $(this).removeClass('fa-star').addClass('fa-star-o');
+      else {
+        $(this).removeClass('fa-star-o').addClass('fa-star');
+        found = $(this).data('star-offset') == $self.data('star-offset');
+      }
+    });
+  }).click(function() {
+    var $self   = $(this);
+    var id      = $(this).data('object-id');
+    var rate    = parseInt($(this).data('star-offset'));
+    var raw_url = '<%= routes.downloadable.rate.route %>';
+    var url     = raw_url.replace(':id', id).replace(':rate', rate);
+
+    // Update class for each rating star
+    $(this).parent().children('.rating').each(function(index) {
+      $(this).removeClass('fa-star').removeClass('fa-star-o');
+      var new_class = (index < rate) ? 'fa-star' : 'fa-star-o';
+      $(this).addClass(new_class);
+      $(this).data('star-original-class', new_class);
+    });
+
+    // Send query to server
+    $.ajax(url)
+    .done(function(msg) {
+      $self.parent().find('.info').fadeIn('slow').delay(500).fadeOut('slow');
+    })
+    .fail(function(jqXHR, textStatus) {
+      alert(textStatus);
+    });
+  });
+
+  $('.user-rating').mouseleave(function() {
+    $(this).children('.rating').each(function() {
+      $(this).removeClass('fa-star')
+             .removeClass('fa-star-o')
+             .addClass( $(this).data('star-original-class') )
+    });
+  });
+});
+</script>

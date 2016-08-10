@@ -51,6 +51,19 @@ let Routes = {
       url: {
         id: {type: SecurityTypes.String}
       }
+    },
+    rate: {
+      route: '/downloadable/rate/:id/:rate',
+      url: {
+        id: {type: SecurityTypes.String},
+        rate: {type: SecurityTypes.Integer, values: ['1', '2', '3', '4', '5']}
+      }
+    },
+    report: {
+      route: '/downloadable/report/:id',
+      url: {
+        id: {type: SecurityTypes.String}
+      }
     }
   },
 
