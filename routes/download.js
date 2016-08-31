@@ -1,23 +1,42 @@
 'use strict'
 
-let Connect         = require('connect-ensure-login'),
+let Async           = require('async'),
+    Fs              = require('fs'),
+    Connect         = require('connect-ensure-login'),
     Routes          = require('../utils/routes'),
     Security        = require('../utils/security'),
     Downloads       = require('../models/download'),
     DownloadHistory = require('../models/download_history'),
     Rating          = require('../models/rating'),
     Comment         = require('../models/comment'),
-    Report          = require('../models/report');
+    Report          = require('../models/report'),
+    Tag             = require('../models/tag');
 
 module.exports = function(app) {
 
   app.get(Routes.downloadable.view.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
-    Downloads.byID(req.params.id)
-    .populate('uploader', 'pseudo')
-    .populate({path: 'comments', populate: {path: 'user'}})
-    .populate('category tags')
-    .populate({path: 'ratings', populate: {path: 'user', select: 'pseudo'}})
-    .exec(function(error, downloadable) {
+    let downloadable, tags;
+
+    Async.parallel([
+      // Get tags
+      function(done) {
+        Tag.all(function(error, found_tags) {
+          tags = found_tags;
+          done(error);
+        });
+      },
+      function(done) {
+        Downloads.byID(req.params.id)
+        .populate('uploader', 'pseudo')
+        .populate({path: 'comments', populate: {path: 'user'}})
+        .populate('category tags')
+        .populate({path: 'ratings', populate: {path: 'user', select: 'pseudo'}})
+        .exec(function(error, found_downloadable) {
+          downloadable = found_downloadable;
+          done(error);
+        });
+      }
+    ], function(error) {
       if(error)
         return next(error);
 
@@ -30,24 +49,47 @@ module.exports = function(app) {
         return rating.user._id.toString() === user_id;
       });
 
+      // Remove already used tags from download tags
+      downloadable.tags.forEach(function(already_added_tag) {
+        tags = tags.removeIf(function(tag) {
+          return tag.name === already_added_tag.name;
+        });
+      });
+
       return res.render('downloadable.ejs', {
         downloadable: downloadable,
-        user_rating: user_rating
+        user_rating: user_rating,
+        tags: tags
       });
     });
   });
 
   app.get(Routes.downloadable.download.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
-    Downloads.byID(req.params.id)
-    .populate('category')
-    .exec(function(error, download) {
-      if(error)
-        return next(error);
-
-      if(!download)
+    req.user.isAllowedToDownloadMore(function(can_download_more) {
+      if(!can_download_more) {
+        req.flash('error', 'You can\'t download anymore today. Please come back tomorrow.');
         return res.redirect(req.previous_url);
+      }
 
-      return res.download(download.getFilePath());
+      Downloads.byID(req.params.id)
+      .populate('category')
+      .exec(function(error, download) {
+        if(error)
+          return next(error);
+
+        if(!download)
+          return res.redirect(req.previous_url);
+
+        let download_history = new DownloadHistory({
+          user: req.user,
+          download: download,
+          ip: req.ip || 'unknown',
+          file_size: Fs.statSync(download.getFilePath())['size']
+        });
+        download_history.save(function(error) { if(error) throw error; });
+
+        return res.download(download.getFilePath());
+      });
     });
   });
 
@@ -148,6 +190,85 @@ module.exports = function(app) {
 
           return done();
         });
+      });
+    });
+  });
+
+  app.post(Routes.downloadable.comment.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    Downloads.byID(req.params.id)
+    .exec(function(error, download) {
+      if(!download)
+        return res.status(400).send('Client error');
+
+      let comment = new Comment({
+        user: req.user,
+        text: req.body.text
+      });
+
+      download.comments.push(comment);
+
+      Async.parallel([
+        function(done) { comment.save(function(error) { done(error); }); },
+        function(done) { download.save(function(error) { done(error); }); }
+      ], function(error) {
+        if(error)
+          throw error;
+
+        res.send('OK');
+      });
+    });
+  });
+
+  app.post(Routes.downloadable.tag.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    let tag, download;
+
+    Async.parallel([
+      function(done) {
+        Downloads.byID(req.params.id)
+        .populate('tags', 'name')
+        .exec(function(error, found_download) {
+          download = found_download;
+          done(error);
+        });
+      },
+      function(done) {
+        Tag.byName(req.body.name)
+        .exec(function(error, found_tag) {
+          tag = found_tag;
+          done(error);
+        })
+      }
+    ], function(error) {
+      if(!download)
+        return res.status(400).send('Client error');
+
+      const tag_name = req.body.name;
+      if(download.hasTag(tag_name)) {
+        return res.status(400).send('Client error');
+      }
+
+      let new_tag = false;
+      if(!tag) {
+        new_tag = true;
+        tag = new Tag({ name: tag_name });
+      }
+      download.tags.push(tag);
+
+      Async.parallel([
+        function(done) {
+          if(new_tag)
+            tag.save(function(error) { done(error); });
+          else
+            done();
+        },
+        function(done) {
+          download.save(function(error) { done(error); });
+        }
+      ], function(error) {
+        if(error)
+          throw error;
+
+        res.send('OK');
       });
     });
   });

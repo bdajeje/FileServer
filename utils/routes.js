@@ -34,6 +34,12 @@ let Routes = {
   },
 
   downloadable: {
+    all: {
+      route: '/downloadable/all',
+      post: {
+        ids: {type: SecurityTypes.String}
+      }
+    },
     view: {
       route: '/downloadable/view/:id',
       url: {
@@ -63,6 +69,21 @@ let Routes = {
       route: '/downloadable/report/:id',
       url: {
         id: {type: SecurityTypes.String}
+      }
+    },
+    comment: {
+      route: '/downloadable/comment/:id',
+      url: {
+        id: {type: SecurityTypes.String}
+      },
+      post: {
+        text: {type: SecurityTypes.String}
+      }
+    },
+    tag: {
+      route: '/downloadable/tag/:id',
+      post: {
+        name: {type: SecurityTypes.String}
       }
     }
   },
@@ -120,6 +141,20 @@ let Routes = {
       route: '/admin/user/unban',
       post: {
         id: {type: SecurityTypes.String}
+      }
+    },
+    download: {
+      unreport: {
+        route: '/admin/download/unreport/:id',
+        url: {
+          id: {type: SecurityTypes.String}
+        }
+      },
+      delete: {
+        route: '/admin/download/delete/:id',
+        url: {
+          id: {type: SecurityTypes.String}
+        }
       }
     }
   }

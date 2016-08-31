@@ -23,6 +23,15 @@
 </div>
 
 <div class="content-block">
+  <h2>Your daily quota</h2>
+  <div class="quota">
+    <div style="width: <%= remaining_quota %>%"></div>
+    <span><%= remaining_quota.toFixed(2) %>%</span>
+  </div>
+  <p>Your quota is reseted every day. You can download up to <%= user.quota_limit / 1000 %> MB per day. Once the limit reached please wait one day.</p>
+</div>
+
+<div class="content-block">
   <h2>Your download history</h2>
   <% if(history.empty()) { %>
     <p>You haven't downloaded anything yet. Give it a try! <a href="<%= routes.browse.route %>">You can browse the database here</a>.</p>

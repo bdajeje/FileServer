@@ -15,6 +15,12 @@ let schema = new Schema({
   extra      : {type: Schema.Types.Mixed}
 });
 
+schema.methods.hasTag = function(tag_name) {
+  return this.tags.find(function(tag) {
+    tag.name === tag_name;
+  }) !== undefined;
+}
+
 schema.methods.getFilePath = function() {
   return `${Config['data']['path']}/${this.category.name}/${this.name}`
 }

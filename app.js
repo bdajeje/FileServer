@@ -18,6 +18,12 @@ let express        = require('express'),
     Configuration  = require('./utils/configuration'),
     ViewUtils      = require('./utils/view_utils');
 
+// Read SSL conf
+let https = require('https').createServer({
+  key: fs.readFileSync(path.join(__dirname, './conf/ssl/server.key'), 'utf8'),
+  cert: fs.readFileSync(path.join(__dirname, './conf/ssl/server.crt'), 'utf8')
+}, app);
+
 // Connection to mongodb
 require('./utils/mongo_connect')(Configuration['mongo']);
 
@@ -93,9 +99,9 @@ app.use(function(error, req, res, next) {
 });
 
 // Start application
-const port = Configuration['server']['port'];
-let server = app.listen(port, function () {
-  console.log(`Listening on port ${port}`);
+const https_port = Configuration['server']['https_port'];
+let server = https.listen(https_port, function () {
+  console.log(`HTTPS listening on port ${https_port}`);
 });
 
 // Disable 'x-powered-by' http header

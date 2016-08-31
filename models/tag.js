@@ -7,6 +7,12 @@ let schema = new Schema({
   name: {type: String, unique: true, required: true, trim: true, lowecase: true}
 });
 
+schema.statics.byName = function(name) {
+  return this.findOne({
+    name: name
+  });
+}
+
 schema.statics.all = function(callback) {
   this.find({}, callback);
 }

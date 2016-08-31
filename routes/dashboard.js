@@ -4,12 +4,13 @@ let Connect         = require('connect-ensure-login'),
     Async           = require('async'),
     Routes          = require('../utils/routes'),
     DownloadHistory = require('../models/download_history'),
-    News            = require('../models/news');
+    News            = require('../models/news'),
+    User            = require('../models/user');
 
 module.exports = function(app) {
 
   app.get(Routes.dashboard.route, Connect.ensureLoggedIn(), function(req, res) {
-    let history, news;
+    let history, news, remaining_quota;
 
     Async.parallel([
       function(done) {
@@ -27,6 +28,14 @@ module.exports = function(app) {
           news = found_news;
           return done(error);
         })
+      },
+      function(done) {
+        req.user.getDownloadQuota(function(download_quota) {
+          remaining_quota = download_quota * 100 / req.user.quota_limit;
+          if(remaining_quota > 100)
+            remaining_quota = 100;
+          done();
+        });
       }
     ], function(error) {
       if(error)
@@ -34,7 +43,8 @@ module.exports = function(app) {
 
       return res.render('dashboard.ejs', {
         history: history,
-        all_news: news
+        all_news: news,
+        remaining_quota: remaining_quota
       });
     });
   });

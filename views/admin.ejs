@@ -59,11 +59,15 @@
       <% var merged_report = merged_reports[name]; %>
       <fieldset>
         <legend><a href="<%= routing.generate(routes.downloadable.view, {id: merged_report.reports[0].download._id}) %>"><%= name %></a></legend>
-        <ul>
+        <ul style="float:left; list-style:none; padding-left:10px;">
           <% merged_report.reports.forEach(function(report) { %>
             <li><%= report.user.pseudo %> the <%= renderDate(report.reported_on) %></li>
           <% }) %>
         </ul>
+        <div style="float: right;">
+          <a href="<%= routing.generate(routes.admin.download.delete, {id: merged_report.reports[0].download._id}) %>" style="margin-right: 15px;"><span class="fa fa-remove" style="margin-right: 5px;"></span>Delete download</a>
+          <a href="<%= routing.generate(routes.admin.download.unreport, {id: merged_report.reports[0].download._id}) %>"><span class="fa fa-check" style="margin-right: 5px;"></span>Unreport</a>
+        </div>
       </fieldset>
     <% }) %>
   <% } %>
@@ -114,7 +118,7 @@
         <%= active_user.pseudo %> - <%= renderDate(active_user.lastConnectedOn) %> -
         <form method="post" action="<%= routes.admin.ban_user.route %>" style="display: inline-block;">
           <input type="hidden" name="id" value="<%= active_user._id %>">
-          <input type="button" class="ban-form-submit" value="Ban" style="color: red;">
+          <input type="button" class="ban-form-submit" value="Ban" style="color: red; padding-bottom: 0;">
         </form>
       </li>
     <% }) %>

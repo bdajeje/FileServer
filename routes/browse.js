@@ -10,7 +10,7 @@ let Async      = require('async'),
 module.exports = function(app) {
 
   app.get(Routes.browse.route, Connect.ensureLoggedIn(), function(req, res) {
-    let categories, downloads, tags;
+    let categories, downloads, tags, can_download;
 
     let user_tags = req.query.tags ? req.query.tags.split(',') : [];
     const search  = req.query.search;
@@ -28,6 +28,12 @@ module.exports = function(app) {
         Tags.all(function(error, found_tags) {
           tags = found_tags;
           done(error);
+        });
+      },
+      function(done) {
+        req.user.isAllowedToDownloadMore(function(can_download_more) {
+          can_download = can_download_more;
+          done();
         });
       }
     ], function(error) {
@@ -70,6 +76,7 @@ module.exports = function(app) {
           tags: tags,
           user_tags: search_tags,
           downloads_by_category: downloads_by_category,
+          can_download: can_download
         });
       });
     });

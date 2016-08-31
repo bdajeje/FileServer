@@ -1,8 +1,9 @@
 'use strict'
 
-let mongoose = require('mongoose'),
-    Schema   = mongoose.Schema,
-    bcrypt   = require('bcrypt-nodejs');
+let mongoose        = require('mongoose'),
+    Schema          = mongoose.Schema,
+    bcrypt          = require('bcrypt-nodejs'),
+    DownloadHistory = require('./download_history');
 
 const Status = {
   Validated: 'validated',
@@ -22,11 +23,15 @@ let schema = new Schema({
   status         : {type: String, required: true, default: Status.WaitingValidation},
   createdOn      : {type: Date, default: Date.now},
   lastConnectedOn: {type: Date},
-  type           : {type: String, required: true, default: Type.Default}
+  type           : {type: String, required: true, default: Type.Default},
+  quota_limit    : {type: Number, required: true, default: 1e+9}, // in bytes
 });
 
-schema.methods.isAllowedToDownloadMore = function() {
-  return false;
+schema.methods.isAllowedToDownloadMore = function(callback) {
+  let self = this;
+  this.getDownloadQuota(function(download_quota) {
+    callback(download_quota < self.quota_limit);
+  })
 }
 
 schema.methods.setPassword = function(clear_password) {
@@ -43,6 +48,27 @@ schema.methods.isValidated = function() {
 
 schema.methods.isPending = function() {
   return this.status === Status.WaitingValidation;
+}
+
+schema.methods.getDownloadQuota = function(callback) {
+  let today = new Date;
+  today.setHours(0,0,0,0);
+
+  let quota = 0;
+
+  DownloadHistory.find({
+    user: this,
+    downloaded_on: {$gt: today}
+  }, function(error, download_histories) {
+    if(error)
+      throw error;
+
+    download_histories.forEach(function(download_history) {
+      quota += download_history.file_size;
+    });
+
+    callback(quota);
+  });
 }
 
 schema.statics.accept = function(id, callback) {

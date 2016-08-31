@@ -8,6 +8,8 @@ let Connect         = require('connect-ensure-login'),
     Download        = require('../models/download'),
     DownloadHistory = require('../models/download_history'),
     News            = require('../models/news'),
+    Rating          = require('../models/report'),
+    Comment         = require('../models/report'),
     Report          = require('../models/report');
 
 module.exports = function(app) {
@@ -138,5 +140,28 @@ module.exports = function(app) {
       });
     });
   })
+
+  app.get(Routes.admin.download.delete.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    Download.byID(req.params.id)
+    .exec(function(error, download) {
+      if(!download)
+        return res.redirect(req.previous_url);
+
+      Rating.remove({ _id: download.ratings });
+      Comment.remove({ _id: download.comments });
+      Download.remove({ _id: download._id });
+      Report.remove({download: download}, function() {
+        req.flash('info', 'Download deleted');
+        return res.redirect(req.previous_url);
+      });
+    })
+  });
+
+  app.get(Routes.admin.download.unreport.route, Connect.ensureLoggedIn(), Security.validateRouteParams(), function(req, res, next) {
+    Report.remove({download: req.params.id}, function() {
+      req.flash('info', 'Download unreported');
+      return res.redirect(req.previous_url);
+    })
+  });
 
 }

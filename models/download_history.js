@@ -7,6 +7,7 @@ let schema = new Schema({
   user          : {type: Schema.Types.ObjectId, ref: 'User', index: true, required: true},
   download      : {type: Schema.Types.ObjectId, ref: 'Download', required: true},
   ip            : {type: String, required: true},
+  file_size     : {type: Number, required: true}, // in bytes
   downloaded_on : {type: Date, default: Date.now, required: true}
 });
 

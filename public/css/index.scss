@@ -277,14 +277,23 @@ table {
 }
 
 .comment {
-  border: 1px dotted $passive_color;
+  border: none;
+  background-color: $sub_bg_color;
+  position: relative;
+  margin-top: 40px;
 
   legend {
-    padding: 0 10px;
+    position: absolute;
+    top: -28px;
+    left: 0px;
+    background-color: $sub_bg_color;
+    display: inline-block;
+    padding: 5px 10px;
   }
 
   .text {
     text-align: justify;
+    float: left;
   }
 }
 
@@ -593,5 +602,38 @@ a.selected {
   .fa-warning {
     font-size: 1em;
     vertical-align: top;
+  }
+}
+
+.quota {
+  width: 50%;
+  height: 30px;
+  background-color: $sub_bg_color;
+  position: relative;
+
+  > div {
+    height: 100%;
+    background-color: $normal_color;
+    text-align: center;
+  }
+
+  > span {
+    position: absolute;
+    top: 7px;
+    left: 0;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+form.inline {
+  display: inline-block;
+
+  input[type=submit] {
+    font-size: small;
+    padding-bottom: 5px;
+    text-decoration: none;
+    border: none;
   }
 }

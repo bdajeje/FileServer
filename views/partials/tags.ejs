@@ -1,9 +1,14 @@
 <script>
   $(document).ready(function() {
-    var $tags = $('#tags');
-    var $tag  = $("#tag");
+    var $tags       = $('#tags');
+    var $tag        = $("#tag");
+    var add_tag_url = '<%= (typeof add_tag_url !== 'undefined') ? add_tag_url : '' %>';
 
-    var addTag = function(name) {
+    <% if(typeof onAdd !== 'undefined') { %>
+    var onAdd = <%- onAdd %>;
+    <% } %>
+
+    var addTag = function(name, user_add) {
       if(!name || name.length === 0)
         return;
 
@@ -25,21 +30,24 @@
       </span>');
 
       $tag.val('');
+
+      if(onAdd && user_add)
+        onAdd(add_tag_url, name);
     }
 
     $('.tag .fa-close').click(function() {
       $(this).parent().remove();
     });
 
-    <% if(typeof user_tags !== 'undefined') {
-      user_tags.forEach(function(user_tag) { %>
-      addTag('<%= user_tag.name %>');
+    <% if(typeof download_tags !== 'undefined') {
+      download_tags.forEach(function(tag) { %>
+      addTag('<%= tag.name %>', false);
     <% })} %>
 
     $tag.autocomplete({
       source: ['<%- tags.map(function(tag) { return tag.name; }).join("','") %>'],
       select: function(event, ui) {
-        addTag(ui.item.label || ui.item.value);
+        addTag(ui.item.label || ui.item.value, true);
         $tag.val('');
         return false;
       }
@@ -54,7 +62,7 @@
         if(value.length === 0)
           return false;
 
-        addTag(value);
+        addTag(value, true);
         event.preventDefault();
       });
     <% } %>

@@ -19,18 +19,17 @@
 
 <div class="content-block">
   <h2>Tags</h2>
-  <% if(downloadable.tags.empty()) { %>
-    <p>No tag yet. Please add a tag to help the community!</p>
-  <% } else { %>
-    <p>
-      <% downloadable.tags.forEach(function(tag) { %>
-        <span class="tag"><%= tag.name %></span>
-      <% }) %>
-    </p>
-  <% } %>
+  <div>
+    <input type="text" id="tag">
+    <span id="tag-info-msg" style="display:none;">Tag added</span>
+    <p id="tags"></p>
+    <% if(downloadable.tags.empty()) { %>
+      <p id="no-tag">No tag yet. Please add a tag to help the community!</p>
+    <% } %>
+  </div>
 </div>
 
-<div class="ratings">
+<div class="ratings content-block">
   <h2>Ratings</h2>
   <h3>Your rate</h3>
   <div class="user-rating" style="display:inline-block;">
@@ -58,16 +57,32 @@
   <h2>Comments</h2>
   <% if(downloadable.comments.empty()) { %>
     <p>No comments yet.</p>
-  <% } else { %>
-    <% downloadable.comments.forEach(function(comment) { %>
-      <fieldset class="comment">
-        <legend><%= comment.user.pseudo %></legend>
-        <p class="text"><%= comment.text %></p>
-        <p class="date">The <%= renderDate(comment.commented_on) %></p>
-      </fieldset>
-    <% }) %>
   <% } %>
+  <div id="comments"></div>
+  <form method="post" action="<%= routing.generate(routes.downloadable.comment, {id: downloadable._id}) %>">
+    <textarea name="text" placeholder="Add your own comment" id="comment-text"></textarea>
+    <input type="button" id="add-comment" value="Add comment" style="vertical-align: bottom; margin-left: 10px; margin-bottom: 13px;">
+  </form>
 </div>
+
+<%- include('partials/tags',
+{
+  download_tags: downloadable.tags,
+  tags: tags,
+  allowNewTags: true,
+  add_tag_url: routing.generate(routes.downloadable.tag, {id: downloadable._id}),
+  onAdd: function(add_tag_url, tag) {
+    $.post(add_tag_url, {name: tag})
+    .done(function(msg) {
+      $('#tag-info-msg').fadeIn('slow').delay(500).fadeOut('slow');
+    })
+    .fail(function(jqXHR, textStatus) {
+      alert(textStatus);
+      location.reload();
+    });
+  }
+})
+%>
 
 <script>
 $(document).ready(function() {
@@ -112,6 +127,42 @@ $(document).ready(function() {
       $(this).removeClass('fa-star')
              .removeClass('fa-star-o')
              .addClass( $(this).data('star-original-class') )
+    });
+  });
+
+  var $comment_text = $('#comment-text');
+  var $comments     = $('#comments');
+
+  var renderDate = <%- renderDate; %>
+
+  var addComment = function(pseudo, text, date, effect) {
+    $comments.append('<fieldset class="comment" style="'+ (effect ? 'display:none;' : '') +'">\
+      <legend>'+ pseudo +'</legend>\
+      <p class="text">'+ text +'</p>\
+      <p class="date">The '+ renderDate(date) + '</p>\
+    </fieldset>');
+
+    if(effect) {
+      $comments.children('.comment').last().slideDown();
+    }
+  }
+
+  <% downloadable.comments.forEach(function(comment) { %>
+    addComment('<%= comment.user.pseudo %>', '<%= comment.text %>', new Date('<%= comment.commented_on %>'), false);
+  <% }) %>
+
+  $('#add-comment').click(function() {
+    var text = $comment_text.val();
+    if(text.length === 0)
+      return;
+
+    addComment('<%= user.pseudo %>', text, new Date, true);
+
+    var url = '<%= routing.generate(routes.downloadable.comment, {id: downloadable._id}) %>';
+    $.post(url, {text: text})
+    .fail(function(jqXHR, textStatus) {
+      alert(textStatus);
+      location.reload();
     });
   });
 });
